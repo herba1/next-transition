@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { PageTransitionProvider } from "./context/pageTransition";
+import Nav from "./components/Nav";
+import Curtain from "./components/Curtain";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -10,6 +13,11 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -24,10 +32,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${inter.className} ${geistMono.variable} antialiased`}>
+        <PageTransitionProvider enterDuration={100} exitDuration={100}>
+          <div className="relative">
+            <Curtain />
+            <Nav />
+            <main>{children}</main>
+          </div>
+        </PageTransitionProvider>
       </body>
     </html>
   );
