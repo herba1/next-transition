@@ -128,7 +128,27 @@ export default function Carousel() {
           </p>
         </div>
         <div className="track mx-auto w-fit">
-          <div className="grid origin-center grid-cols-1 grid-rows-1 gap-8 perspective-distant transform-3d">
+          <motion.div
+            onPan={(e, pointInfo) => {
+              const delta = pointInfo.delta.x;
+              if (delta > 0) {
+                setDirection(-1);
+                if (activeSlide <= 0) {
+                  setActiveSlide(data.length - 1);
+                  return;
+                }
+                setActiveSlide(activeSlide - 1);
+              } else if (delta < 0) {
+                setDirection(1);
+                if (activeSlide >= data.length - 1) {
+                  setActiveSlide(0);
+                  return;
+                }
+                setActiveSlide(activeSlide + 1);
+              }
+            }}
+            className="grid origin-center grid-cols-1 grid-rows-1 gap-8 perspective-distant transform-3d"
+          >
             <MotionConfig
               transition={{ type: "spring", duration: 0.5, bounce: 0 }}
             >
@@ -192,7 +212,7 @@ export default function Carousel() {
                 </motion.button>
               </AnimatePresence>
             </MotionConfig>
-          </div>
+          </motion.div>
         </div>
         <motion.div
           animate={{ width: bounds.width }}
@@ -327,7 +347,7 @@ function CarouselItem({
   active?: boolean;
 }) {
   return (
-    <article className="relative aspect-square w-[80vw] overflow-clip rounded-md border border-black/30 inset-shadow-sm inset-shadow-black/30 select-none sm:size-72">
+    <article className="relative aspect-square w-[65vw] overflow-clip rounded-md border border-black/30 inset-shadow-sm inset-shadow-black/30 select-none sm:size-72">
       <Image
         loading="eager"
         src={data.img}

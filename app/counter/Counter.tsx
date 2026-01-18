@@ -5,8 +5,8 @@ import { animate } from "motion";
 export default function Counter() {
   const [count, setCount] = useState(0);
   const [inputFocus, setInputFocus] = useState(false);
-  const [vibrate, setVibrate] = useState(true);
-  const [state, setState] = useState<"button" | "expanded">("expanded");
+  const [vibrate, setVibrate] = useState(false);
+  const [state, setState] = useState<"button" | "expanded">("button");
   const [formState, setFormState] = useState<
     "idle" | "confirm" | "pending" | "success"
   >("idle");
@@ -15,7 +15,7 @@ export default function Counter() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormState("pending");
+    // setFormState("pending");
   };
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function Counter() {
         {state === "expanded" && (
           <motion.form
             exit={{
-              filter: "blur(4px)",
+              filter: "blur(2px)",
               opacity: 0,
               scale: 0.8,
               y: "0%",
@@ -77,7 +77,7 @@ export default function Counter() {
               transition: { duration: 0.1 },
             }}
             initial={{
-              filter: "blur(4px)",
+              filter: "blur(2px)",
               opacity: 0,
               scale: 0.95,
               y: "10%",
@@ -97,7 +97,7 @@ export default function Counter() {
             <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black to-transparent to-50% opacity-5 select-none"></div>
             <label
               htmlFor="amount"
-              className="inline-block bg-linear-to-b from-neutral-800 to-neutral-900 bg-clip-text text-center font-semibold tracking-tight text-transparent sm:text-2xl"
+              className="inline-block bg-linear-to-b from-neutral-800 to-neutral-900 bg-clip-text text-center font-medium tracking-tight text-transparent sm:text-2xl"
             >
               Select an amount:
             </label>
