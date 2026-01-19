@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Page Transitions 
 
-## Getting Started
+A simple page transition system for Next.js App Router. Provides transition states you can use with CSS or any animation library.
 
-First, run the development server:
+## Usage
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Wrap your app with the provider
+
+```tsx
+// app/layout.tsx
+import { PageTransitionProvider } from "./context/pageTransition";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <PageTransitionProvider enterDuration={300} exitDuration={300}>
+          {children}
+        </PageTransitionProvider>
+      </body>
+    </html>
+  );
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Use TransitionLink instead of Link
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```tsx
+import { TransitionLink } from "./context/pageTransition";
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<TransitionLink href="/about">About</TransitionLink>
+```
 
-## Learn More
+### 3. Add TransitionSignaler to each page
 
-To learn more about Next.js, take a look at the following resources:
+This signals the page has mounted so the transition can continue.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```tsx
+// app/about/page.tsx
+import { TransitionSignaler } from "../context/pageTransition";
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+export default function AboutPage() {
+  return (
+    <div>
+      <TransitionSignaler />
+      About Page
+    </div>
+  );
+}
+```
 
-## Deploy on Vercel
+### 4. Use the states for animations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```tsx
+"use client";
+import { usePageTransition } from "./context/pageTransition";
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+function MyOverlay() {
+  const { isLeaving, isEntering, isPending, enterDuration, exitDuration } = usePageTransition();
+
+  // Use duration values directly - no need to hardcode them
+  return (
+    <div
+      style={{
+        transitionDuration: isLeaving ? `${exitDuration}ms` : `${enterDuration}ms`
+      }}
+      className={`overlay ${isLeaving || isPending || isEntering ? "visible" : ""}`}
+    />
+  );
+}
+```
+
+## States
+
+| State | Description |
+|-------|-------------|
+| `isLeaving` | Exit animation playing |
+| `isPending` | Waiting for new page to mount |
+| `isEntering` | Enter animation playing |
+| `isReady` | Transition complete |
+| `enterDuration` | Enter duration in ms (from config) |
+| `exitDuration` | Exit duration in ms (from config) |
+
+Use `enterDuration` and `exitDuration` directly in your animations - change it once in the provider, and it updates everywhere.
