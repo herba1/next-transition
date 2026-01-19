@@ -1,7 +1,13 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
+import {
+  AnimatePresence,
+  HTMLMotionProps,
+  motion,
+  MotionConfig,
+} from "motion/react";
 import { animate } from "motion";
+import useMeasure from "react-use-measure";
 export default function Counter() {
   const [count, setCount] = useState(0);
   const [inputFocus, setInputFocus] = useState(false);
@@ -17,6 +23,13 @@ export default function Counter() {
     e.preventDefault();
     // setFormState("pending");
   };
+
+  useEffect(() => {
+    if (input.current) {
+      // setInputFocus(true);
+      input.current.focus();
+    }
+  }, [state]);
 
   useEffect(() => {
     if (vibrate) {
@@ -97,12 +110,12 @@ export default function Counter() {
             <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black to-transparent to-50% opacity-5 select-none"></div>
             <label
               htmlFor="amount"
-              className="inline-block bg-linear-to-b from-neutral-800 to-neutral-900 bg-clip-text text-center font-medium tracking-tight text-transparent sm:text-2xl"
+              className="inline-block bg-neutral-900 bg-clip-text text-center font-medium tracking-tight text-transparent sm:text-2xl"
             >
               Select an amount:
             </label>
             <motion.div
-              className={`group relative flex h-fit w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-100 py-6 text-7xl text-neutral-900 inset-shadow-xs inset-shadow-black/30 outline-1 outline-black/10 will-change-transform sm:text-8xl`}
+              className={`group relative flex h-fit w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 py-6 text-7xl text-neutral-900 inset-shadow-xs inset-shadow-black/30 outline-1 outline-black/10 will-change-transform sm:text-8xl`}
               animate={
                 vibrate
                   ? {
@@ -121,6 +134,7 @@ export default function Counter() {
                 type="text"
                 inputMode="numeric"
                 required
+                disabled={formState === "confirm" || formState === "pending"}
                 onChange={(e) => {
                   if (e.target.value.toString().length > 4) {
                     setVibrate(true);
@@ -204,7 +218,6 @@ export default function Counter() {
                     </motion.span>
                   )}
                 </AnimatePresence>
-                {/* using caret position and motion to visually move with select */}
               </motion.span>
               <AnimatePresence mode="popLayout">
                 {inputFocus && (
@@ -240,23 +253,90 @@ export default function Counter() {
             </motion.div>
             <div className="flex w-full justify-between">
               <Button
-                onClick={() => setState("button")}
-                className={`bg-slate-200 text-neutral-600!`}
+                onClick={() => {
+                  if (formState === "idle") {
+                    setState("button");
+                  } else if (formState === "confirm") {
+                    setFormState("idle");
+                  }
+                }}
+                className={`bg-gray-100 text-neutral-600!`}
                 disabled={formState === "pending"}
                 type="button"
               >
                 Cancel
               </Button>
               <motion.div>
-                <Button
-                  className={` ${!count && "cursor-not-allowed"}`}
-                  type="submit"
-                  onClick={() => {
-                    if (!vibrate) setVibrate(true);
-                  }}
+                <MotionConfig
+                  transition={{ type: "spring", duration: 0.3, bounce: 0.1 }}
                 >
-                  Send
-                </Button>
+                  <Button
+                    className={` ${!count && "cursor-not-allowed"} ${formState === "pending" && "opacity-80"}`}
+                    type="submit"
+                    onClick={(e) => {
+                      if (formState === "idle" && !count) {
+                        if (!vibrate) setVibrate(true);
+                      }
+                      if (formState === "idle" && count) {
+                        e.preventDefault();
+                        setFormState("confirm");
+                        return;
+                      }
+                      if (formState === "confirm") {
+                        e.preventDefault();
+                        setFormState("pending");
+                      }
+                    }}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {formState === "idle" && (
+                        <motion.span
+                          initial={{
+                            opacity: 0,
+                            filter: "blur(2px)",
+                          }}
+                          animate={{ opacity: 1, filter: "blur(0px)" }}
+                          exit={{ opacity: 0, filter: "blur(2px)" }}
+                          key={"send1"}
+                          className="inline-block"
+                          layout
+                        >
+                          Send
+                        </motion.span>
+                      )}
+                      {formState === "confirm" && (
+                        <motion.span
+                          layout
+                          initial={{
+                            opacity: 0,
+                            filter: "blur(2px)",
+                          }}
+                          animate={{ opacity: 1, filter: "blur(0px)" }}
+                          exit={{ opacity: 0, filter: "blur(2px)" }}
+                          key={"send2"}
+                          className="inline-block"
+                        >
+                          Are you sure?
+                        </motion.span>
+                      )}
+                      {formState === "pending" && (
+                        <motion.span
+                          layout
+                          initial={{
+                            opacity: 0,
+                            filter: "blur(2px)",
+                          }}
+                          animate={{ opacity: 1, filter: "blur(0px)" }}
+                          exit={{ opacity: 0, filter: "blur(2px)" }}
+                          key={"send3"}
+                          className="inline-block"
+                        >
+                          Sending...
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </MotionConfig>
               </motion.div>
             </div>
           </motion.form>
@@ -271,25 +351,35 @@ interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
 }
 
 function Button({ children, className, ...props }: ButtonProps) {
+  const [ref, bounds] = useMeasure({ offsetSize: true });
+  const hasInitialized = bounds.width > 0;
+
   return (
     <motion.button
       {...props}
+      animate={hasInitialized ? { width: bounds.width } : undefined}
+      initial={false}
       whileHover={{
-        scale: 1.03,
+        transition: { duration: 0.2 },
+        scale: 1.05,
       }}
       whileTap={{
-        scale: 0.97,
+        transition: { duration: 0.1 },
+        scale: 0.95,
       }}
-      className={`relative overflow-clip rounded-xl border border-black/15 bg-blue-500 px-6 py-2 text-base font-medium text-white shadow-sm inset-shadow-sm shadow-black/20 inset-shadow-white/40 transition-shadow will-change-transform hover:shadow-black/15 ${className}`}
+      className={`relative block overflow-clip rounded-xl border border-black/15 bg-blue-500 text-base font-medium text-white shadow-sm inset-shadow-sm shadow-black/20 inset-shadow-white/30 transition-shadow will-change-transform hover:shadow-black/15 ${className}`}
     >
       <motion.div
         whileHover={{
           scale: 1.05,
           opacity: 0.3,
         }}
-        className="absolute inset-0 bg-linear-to-b from-white to-white/0 to-40% opacity-20"
+        className="absolute inset-0 bg-linear-to-b from-white to-white/0 to-50% opacity-15"
       ></motion.div>
-      {children}
+      <motion.div className="absolute inset-0 bg-linear-to-t from-black to-transparent to-30% opacity-5"></motion.div>
+      <div ref={ref} className="w-max px-6 py-2 text-nowrap">
+        {children}
+      </div>
     </motion.button>
   );
 }
