@@ -1,13 +1,16 @@
-import { TransitionSignaler } from "../context/pageTransition";
+"use client";
+import MotionPageTransition from "../components/MotionPageTransition";
+import { usePageTransition } from "../context/pageTransition";
 import Counter from "./Counter";
 
 export default function CounterPage() {
   return (
-    <main className="h-svh w-full">
-      <div className=" w-full h-full bg-slate-100">
-        <Counter></Counter>
-      </div>
-      <TransitionSignaler />
-    </main>
+    <MotionPageTransition {...usePageTransition()}>
+      <main className="h-svh w-full">
+        <div className="h-full w-full ">
+          <Counter></Counter>
+        </div>
+      </main>
+    </MotionPageTransition>
   );
 }

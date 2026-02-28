@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { PageTransitionProvider } from "./context/pageTransition";
 import Nav from "./components/Nav";
-import Curtain from "./components/Curtain";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,14 +29,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log("RootLayout rendered");
   return (
     <html lang="en">
-      <body className={`${inter.className} ${geistMono.variable} antialiased`}>
-        <PageTransitionProvider enterDuration={100} exitDuration={100}>
+      <body
+        className={`${inter.className} ${geistMono.variable} bg-white antialiased`}
+      >
+        <PageTransitionProvider enterDuration={300} exitDuration={300}>
           <div className="relative">
-            <Curtain />
             <Nav />
-            <main>{children}</main>
+            <div>{children}</div>
           </div>
         </PageTransitionProvider>
       </body>

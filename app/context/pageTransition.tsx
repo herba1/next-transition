@@ -6,7 +6,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type PageTransitionContextType = {
+export type PageTransitionContextType = {
   exitDuration: number;
   enterDuration: number;
   isLeaving: boolean;
@@ -116,12 +116,16 @@ export function PageTransitionProvider({
 
 // Hook to use the PageTransition context
 export function usePageTransition(): PageTransitionContextType {
-  const context = useContext(PageTransitionContext);
+  const context:PageTransitionContextType | undefined = useContext(PageTransitionContext);
   if (!context) {
     throw new Error(
       "usePageTransition must be used within a PageTransitionProvider"
     );
   }
+  useEffect(() => {
+    context.signalReady();
+  }, []);
+
   return context;
 }
 
